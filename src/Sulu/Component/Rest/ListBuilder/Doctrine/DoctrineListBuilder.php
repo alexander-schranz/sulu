@@ -29,6 +29,7 @@ use Sulu\Component\Rest\ListBuilder\Expression\Doctrine\DoctrineOrExpression;
 use Sulu\Component\Rest\ListBuilder\Expression\Doctrine\DoctrineWhereExpression;
 use Sulu\Component\Rest\ListBuilder\Expression\Exception\InvalidExpressionArgumentException;
 use Sulu\Component\Rest\ListBuilder\FieldDescriptorInterface;
+use Sulu\Component\Security\Authentication\UserInterface;
 use Sulu\Component\Security\Authorization\AccessControl\SecuredEntityRepositoryTrait;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -98,6 +99,18 @@ class DoctrineListBuilder extends AbstractListBuilder
      */
     private $idField;
 
+    /**
+     * @var string
+     */
+    private $securedEntityName;
+
+    /**
+     * Array of unique field descriptors needed for secure-check.
+     *
+     * @var array
+     */
+    private $permissionCheckFields = [];
+
     public function __construct(
         EntityManager $em,
         $entityName,
@@ -114,6 +127,26 @@ class DoctrineListBuilder extends AbstractListBuilder
             $this->entityName,
             'public.id'
         );
+
+        $this->securedEntityName = $entityName;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setPermissionCheck(UserInterface $user, $permission, $securedEntityName = null)
+    {
+        parent::setPermissionCheck($user, $permission);
+
+        $this->securedEntityName = $securedEntityName ?: $this->entityName;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function addPermissionCheckField(DoctrineFieldDescriptor $fieldDescriptor)
+    {
+        $this->permissionCheckFields[$fieldDescriptor->getEntityName()] = $fieldDescriptor;
     }
 
     /**
@@ -146,6 +179,10 @@ class DoctrineListBuilder extends AbstractListBuilder
         $this->eventDispatcher->dispatch(ListBuilderEvents::LISTBUILDER_CREATE, $event);
         $this->expressionFields = $this->getUniqueExpressionFieldDescriptors($this->expressions);
 
+        if (!$this->limit && empty($this->expressions)) {
+            return $this->createFullQueryBuilder($this->createQueryBuilder())->getQuery()->getArrayResult();
+        }
+
         // first create simplified id query
         // select ids with all necessary filter data
         $ids = $this->findIdsByGivenCriteria();
@@ -155,28 +192,39 @@ class DoctrineListBuilder extends AbstractListBuilder
             return [];
         }
 
-        // now select all data
-        $this->queryBuilder = $this->em->createQueryBuilder()
-            ->from($this->entityName, $this->entityName);
-        $this->assignJoins($this->queryBuilder);
+        $this->queryBuilder = $this->createFullQueryBuilder(
+            $this->em->createQueryBuilder()->from($this->entityName, $this->entityName)
+        );
 
-        // Add all select fields
-        foreach ($this->selectFields as $field) {
-            $this->queryBuilder->addSelect($this->getSelectAs($field));
-        }
-        // group by
-        $this->assignGroupBy($this->queryBuilder);
-        // assign sort-fields
-        $this->assignSortFields($this->queryBuilder);
+        // now select all data
+        $this->assignJoins($this->queryBuilder);
 
         // use ids previously selected ids for query
         $select = $this->idField->getSelect();
-        $this->queryBuilder->where($select . ' IN (:ids)')
-            ->setParameter('ids', $ids);
-
-        $this->queryBuilder->distinct($this->distinct);
+        $this->queryBuilder->where($select . ' IN (:ids)')->setParameter('ids', $ids);
 
         return $this->queryBuilder->getQuery()->getArrayResult();
+    }
+
+    /**
+     * @return QueryBuilder
+     */
+    protected function createFullQueryBuilder(QueryBuilder $queryBuilder)
+    {
+        // Add all select fields
+        foreach ($this->selectFields as $field) {
+            $queryBuilder->addSelect($this->getSelectAs($field));
+        }
+
+        // group by
+        $this->assignGroupBy($queryBuilder);
+
+        // assign sort-fields
+        $this->assignSortFields($queryBuilder);
+
+        $queryBuilder->distinct($this->distinct);
+
+        return $queryBuilder;
     }
 
     /**
@@ -336,8 +384,8 @@ class DoctrineListBuilder extends AbstractListBuilder
                 $queryBuilder,
                 $this->user,
                 $this->permissions[$this->permission],
-                $this->entityName,
-                $this->entityName
+                $this->securedEntityName,
+                $this->securedEntityName
             );
         }
 
@@ -373,6 +421,12 @@ class DoctrineListBuilder extends AbstractListBuilder
                     }
                     $addJoins = array_merge($addJoins, [$entityName => $join]);
                 }
+            }
+        }
+
+        if ($this->user && $this->permission && array_key_exists($this->permission, $this->permissions)) {
+            foreach ($this->permissionCheckFields as $permissionCheckField) {
+                $addJoins = array_merge($addJoins, $permissionCheckField->getJoins());
             }
         }
 

@@ -1311,6 +1311,12 @@ abstract class AbstractContactManager implements ContactManagerInterface
             $address->setCity($addressData['city']);
             $address->setState($addressData['state']);
 
+            if (isset($addressData['latitude'])) {
+                $address->setLatitude('' !== $addressData['latitude'] ? $addressData['latitude'] : null);
+            }
+            if (isset($addressData['longitude'])) {
+                $address->setLongitude('' !== $addressData['longitude'] ? $addressData['longitude'] : null);
+            }
             if (isset($addressData['note'])) {
                 $address->setNote($addressData['note']);
             }
@@ -1389,6 +1395,12 @@ abstract class AbstractContactManager implements ContactManagerInterface
                 $address->setCountry($country);
                 $address->setAddressType($addressType);
 
+                if (isset($entry['latitude'])) {
+                    $address->setLatitude($entry['latitude'] ?: null);
+                }
+                if (isset($entry['longitude'])) {
+                    $address->setLongitude($entry['longitude'] ?: null);
+                }
                 if (isset($entry['note'])) {
                     $address->setNote($entry['note']);
                 }
@@ -1781,7 +1793,7 @@ abstract class AbstractContactManager implements ContactManagerInterface
      */
     private function resetIndexOfSubentites($entities)
     {
-        if (count($entities) > 0 && method_exists($entities, 'getValues')) {
+        if ($entities && count($entities) > 0 && method_exists($entities, 'getValues')) {
             $newEntities = $entities->getValues();
             $entities->clear();
             foreach ($newEntities as $value) {

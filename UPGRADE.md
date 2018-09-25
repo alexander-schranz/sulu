@@ -1,5 +1,51 @@
 # Upgrade
 
+## 1.6.17
+
+### Address latitude/longitude
+
+The address of contact/account was extended by latitude and longitude - therefore the database has to be updated.
+Run the following command:
+
+```bash
+php bin/console doctrine:schema:update --force
+```
+
+or the following SQL statements on your database:
+
+```sql
+ALTER TABLE co_addresses ADD latitude DOUBLE PRECISION DEFAULT NULL, ADD longitude DOUBLE PRECISION DEFAULT NULL;
+```
+
+### SEO Title
+
+The default length for the title field in the SEO tab has changed from 55 to 70, because Google has expanded
+the max length. If you want to have a different length for some reason you can change it in the configuration:
+
+```yaml
+sulu_content:
+    seo:
+        max_title_length: 55
+```
+
+## 1.6.16
+
+### Page index extension
+
+The field `authored` are now added to massive_search index. Because of this the index has to be rebuild.
+
+```bash
+bin/adminconsole massive:search:reindex --provider sulu_structure
+bin/websiteconsole massive:search:reindex --provider sulu_structure
+```
+
+## 1.6.15
+
+### Priority of UpdateResponseSubscriber
+
+If you had hooked into response-event of symfony to change the cache behavior of Sulu, be aware of changed priority
+and update yours if required.
+
 ## 1.6.11
 
 ### SEO Description
@@ -165,6 +211,10 @@ The following deprecated classes was removed:
 * `Sulu\Component\Security\Authorization\AccessControl\SymfonyAccessControlManager`
 
 Therefor the dependency `symfony/security-acl` was useless and removed.
+
+## 1.5.15
+
+Added method `hasType` to `Sulu\Component\Content\Compat\Block\BlockPropertyInterface`.
 
 ## 1.5.0-RC1
 

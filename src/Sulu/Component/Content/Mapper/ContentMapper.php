@@ -48,8 +48,10 @@ use Sulu\Component\Content\Metadata\Factory\Exception\StructureTypeNotFoundExcep
 use Sulu\Component\Content\Types\ResourceLocator\Strategy\ResourceLocatorStrategyPoolInterface;
 use Sulu\Component\Content\Types\ResourceLocatorInterface;
 use Sulu\Component\DocumentManager\Behavior\Mapping\ParentBehavior;
+use Sulu\Component\DocumentManager\Document\UnknownDocument;
 use Sulu\Component\DocumentManager\DocumentAccessor;
 use Sulu\Component\DocumentManager\DocumentManager;
+use Sulu\Component\DocumentManager\Exception\DocumentNotFoundException;
 use Sulu\Component\DocumentManager\NamespaceRegistry;
 use Sulu\Component\PHPCR\SessionManager\SessionManagerInterface;
 use Sulu\Component\Webspace\Manager\WebspaceManagerInterface;
@@ -276,6 +278,10 @@ class ContentMapper implements ContentMapperInterface
             ]
         );
 
+        if ($document instanceof UnknownDocument) {
+            throw new DocumentNotFoundException();
+        }
+
         return $this->documentToStructure($document);
     }
 
@@ -499,6 +505,10 @@ class ContentMapper implements ContentMapperInterface
             if ($document instanceof WorkflowStageBehavior) {
                 $documentAccessor = new DocumentAccessor($destDocument);
                 $documentAccessor->set(WorkflowStageSubscriber::PUBLISHED_FIELD, null);
+            }
+
+            if ($document instanceof ExtensionBehavior) {
+                $destDocument->setExtensionsData($document->getExtensionsData());
             }
 
             // TODO: This can be removed if RoutingAuto replaces the ResourceLocator code.

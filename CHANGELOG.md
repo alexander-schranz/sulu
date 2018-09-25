@@ -2,8 +2,113 @@ CHANGELOG for Sulu
 ==================
 
 * dev-master
+    * HOTFIX      #4146 [PreviewBundle]         Fixed preview render preview attribute and XmlHttpRequest state
+    * BUGFIX      #4121 [HttpCache]             Set a timeout when purging caches
+    * BUGFIX      #4109 [ContentBundle]         Remove validation-state from rendered link
+
+* 1.6.21 (2018-07-18)
+    * HOTFIX      #4063 [ContentComponent]      Fixed copy language function, which didn't copy the extension data
+    * HOTFIX      #4056 [MediaBundle]           Added security-check for collection permission to media-controller
+    * HOTFIX      #5060 [MediaBundle]           Added escaping of media edit overlay title
+    * HOTFIX      #4067 [SmartContent]          Avoid returning the same id multiple times in filter query of smart content
+    * HOTFIX      #4058 [ContactBundle]         Added escaping of name in contact-list
+    * HOTFIX      #4058 [ContactBundle]         Added escaping for address and bank-accounts
+    * HOTFIX      #4058 [MediaBundle]           Added escaping of name in media-list
+    * HOTFIX      #4057 [SecurityBundle]        Removed password-hash from user-api
+
+* 1.6.20 (2018-06-29)
+    * BUGFIX      #4042 [AudienceTargetingBundle] Add symfony 3.4.12 as conflict to fix caching tests
+    * HOTFIX      #4019 [Component]               Fix handling of authored date on safari
+    * HOTFIX      #4027 [PreviewBundle]           Fix correct url in preview
+    * HOTFIX      #4017 [SnippetBundle]           Fix snippet conflict overlay
+    * BUGFIX      #4044 [PreviewBundle]           Fixed support method for PageRouteDefaultsProvider
+    * HOTFIX      #4044 [Webspace]                Fixed document creation in webspace-initializer
+    * ENHANCEMENT #4028 [MediaBundle]             Log errors in image generation
+    * ENHANCEMENT #3850 [SecurityBundle]          Allow user to be null for security config
+    * ENHANCEMENT #3850 [MediaBundle]             Allow user to be null for security expression in service build
+    * BUGFIX      #4018 [SnippetBundle]           Fix conflict when saving snippet in new language
+    * BUGFiX      #3995 [TestBundle]              Fix tests for latest Symfony version
+
+* 1.6.19 (2018-05-24)
+    * HOTFIX      #3980 [PreviewBundle]           Fix kernel.project_dir parameter for PreviewKernel
+    * BUGFIX      #3967 [AudienceTargetingBundle] Fixed loading of minified js files for production
+    * HOTFIX      #3950 [ContactBundle]           Fixed empty latitude and longitude
+    * HOTFIX      #3949 [ContentBundle]           Fixed security check for deleting draft
+
+* 1.6.18 (2018-05-03)
+    * ENHANCEMENT #3930 [PreviewBundle]           Fixed preview style-link
+    * HOTFIX      #3946 [ContentBundle]           Single internal link: Clear selection when target doesn't exists
+    * HOTFIX      #3941 [WebsiteBundle]           Fix hideInSitemap flag for sitemap twig extension
+    * BUGFIX      #3926 [WebsiteBundle]           Fix profiler for none sulu routes
+
+* 1.6.17 (2018-04-23)
+    * FEATURE     #3906 [MediaBundle]             Add file version delete to media overlay
+    * HOTFIX      #3912 [ContentBundle]           Fixed content-query when a child is broken
+    * FEATURE     #3914 [ContactBundle]           Added latitude/longitude to address 
+    * FEATURE     #3905 [MediaBundle]             Add canonical and robots noIndex headers to download of old versions 
+    * ENHANCEMENT #3899 [PreviewBundle]           Replaced links in preview with '#'
+    * ENHANCEMENT #3884 [ContentBundle]           Improved developer-experience when overriding content-teaser-provider
+    * ENHANCEMENT #3897 [ContentBundle]           SEO title length changed from 55 to 70
+    * HOTFIX      #3870 [Husky]                   Updated husky to fix bug with thumbnails in datagrid
+    * BUGFIX      #3915 [ContactBundle]           Fix typehint in api ContactLocale constructor
+    * BUGFIX      #3918 [RestComponent]           CSV Export: Fixed serialization of boolean
+    * ENHANCEMENT #3876 [ContentBundle]           Reload data when changing template
+
+* 1.6.16 (2018-03-19)
+    * ENHANCEMENT #3849 [AdminBundle]             Add Twig main blocks to be able to use inheritance
+    * HOTFIX      #3848 [ContentBundle]           Added check for unknown-document for "sulu_content_load"
+    * BUGFIX      #3844 [Husky]                   Fix accidentally escaping of select value
+    * ENHANCEMENT #3846 [ContentBundle]           Added authored field to base-page-document index
+    * ENHANCEMENT #3843 [CustomUrlBundle]         Show custom url tab only when configured
+    * BUGFIX      #3828 [Husky]                   Avoid expand ids parameter to be added to datagrid request without content
+    * BUGFIX      #3828 [Husky]                   Fixed paragraphs and breaks in paste from word plugin
+    * HOTFIX      #3813 [SnippetBundle]           Ignore wrong template exception
+    * HOTFIX      #3820 [CustomUrlBundle]         Added base-domains to query for custom-urls
+    * HOTFIX      #3810 [ContentBundle]           Fixed rename and publish exception if page has link to a child
+    * BUGFIX      #3805 [ContentBundle]           Fix spacing between rows and section in content template generation
+    * HOTFIX      #3797 [CategoryBundle]          Fixed category csv-export
+    * HOTFIX      #3797 [Rest]                    Fixed issue with large amount of ids in doctrine list-builder query
+    * ENHANCEMENT #3830 [All]                     Avoid duplicated run of composer update for travis
+    * BUGFIX      #3826 [ContentBundle]           Fix enabling of save button when toggler is changed
+    * HOTFIX      #3819 [MediaBundle]             Fix forgotten context binding for resetPreviewUrl method
+    * FEATURE     #3816 [All]                     Validate if grunt build was run for all bundles with circleci
+    * BUGFIX      #3806 [All]                     Fix compatibility on lowest and fix appveyor
+    * BUGFIX      #3351 [ContentBundle]           Fix spacing between rows and section in content template generation
+    * BUGFIX      #3901 [PreviewBundle]           Add a voter to allow the PreviewKernel to access all uris.
+    
+* 1.6.15 (2018-02-27)
+    * HOTFIX      #3802 [ContentBundle]           Fixed XmlLoader internal flag
+    * HOTFIX      #3796 [HttpCache]               Increased priority of update-response-subscriber 
+    * HOTFIX      #3793 [PreviewBundle]           Set context data (token, locale) before render can fail
+    * ENHANCEMENT #3779 [ContentBundle]           Improved cache-invalidation for categories/tags in excerpt tab
+    * ENHANCEMENT #3777 [ContentBundle]           Added tag/category reference-store
+    * ENHANCEMENT #3778 [ContactBundle]           Improved cache-invalidation for media/contact/account
+    * ENHANCEMENT #3778 [ContactBundle]           Added reference-store to contact/account
+    * ENHANCEMENT #3778 [MediaBundle]             Added reference-store to media
+    * FEATURE     #3028 [MediaBundle]             Added blur, grayscale, gamma, negative and sharpen transformation to media
+    * HOTFIX      #3750 [PreviewBundle]           Fixed refresh preview
+    * HOTFIX      #3747 [RouteBundle]             Added empty array as default value to histories property.
+    * BUGFIX      #3755 [RouteBundle]             Fixed how the route provider strips format extensions from the path
+    * HOTFIX      #3789 [MediaBundle]             Check if current user is sulu user to avoid errors
+    * BUGFIX      #3639 [ContentBundle]           Fix structure internal flag and add webspace validate command
+    * ENHANCEMENT #3764 [Component]               Allow dynamic order of elements in webspace xml
+    * HOTFIX      #3752 [ContentBundle]           Overwrite 'doctrine:phpcr:workspace:import' set default to throw
+    * ENHANCEMENT #3775 [Component]               Use is iterable instead of custom is_array twig function in webspace dumper
+
+* 1.6.14 (2018-02-06)
+    * ENHANCEMENT #3717 [ContentBundle]           ResourceLocator: Show whole url in history overlay
+    * HOTFIX      #3739 [ContentBundle]           Added locale to content-teaser query
+    * ENHANCEMENT #3735 [DocumentManager]         Set proper default locale for document-manager
+    * ENHANCEMENT #3736 [WebsiteBundle]           Added exception when default_host is needed for sitemap generation
+    * HOTFIX      #3741 [ContentBundle]           Cleand-up xliff import/export component
+    * HOTFIX      #3730 [ContactBundle]           Fixed class parameter to load field-descriptor
+    * HOTFIX      #3720 [MediaBundle]             Added extension-guesser to fix wrong extensions on download
+
+* 1.6.13 (2018-01-18)
     * ENHANCEMENT #3715 [RouteBundle]             RouteRepository: Added method 'findAllByEntity'
     * HOTFIX      #3713 [WebsiteBundle]           Fixed redirect listener to allow trailing slashes for homepage
+    * HOTFIX      #3709 [CategoryBundle]          Category API: Fix bug when searching with rootKey parameter
+    * BUGFIX      #3693 [MediaBundle]             Fix retina flag in XmlFormatLoader11 & add tests for retina flag
 
 * 1.6.12 (2017-12-21)
     * ENHANCEMENT #3698 [ContentBundle]           SEO description length changed from 155 to 320
@@ -149,6 +254,67 @@ CHANGELOG for Sulu
     * FEATURE     #3278 [Util]                  Changed way to determine `sulu.version` to composer.lock
     * FEATURE     #3278 [Util]                  Introduced new parameter `app.version` read from composer.json
     * ENHANCEMENT #3154 [All]                   Upgrade symfony to ^3.0
+
+* 1.5.17 (2018-07-18)
+    * HOTFIX      #4063 [ContentComponent]      Fixed copy language function, which didn't copy the extension data
+    * HOTFIX      #4056 [MediaBundle]           Added security-check for collection permission to media-controller
+    * HOTFIX      #5060 [MediaBundle]           Added escaping of media edit overlay title
+    * HOTFIX      #4067 [SmartContent]          Avoid returning the same id multiple times in filter query of smart content
+    * HOTFIX      #4058 [ContactBundle]         Added escaping of name in contact-list
+    * HOTFIX      #4058 [ContactBundle]         Added escaping for address and bank-accounts
+    * HOTFIX      #4058 [MediaBundle]           Added escaping of name in media-list
+    * HOTFIX      #4057 [SecurityBundle]        Removed password-hash from user-api
+
+* 1.5.16 (2018-06-29)
+    * ENHANCEMENT #4028 [MediaBundle]           Log errors in image generation
+    * ENHANCEMENT #3850 [SecurityBundle]        Allow user to be null for security config
+    * ENHANCEMENT #3850 [MediaBundle]           Allow user to be null for security expression in service build
+    * BUGFIX      #4018 [SnippetBundle]         Fix conflict when saving snippet in new language
+    * BUGFiX      #3995 [TestBundle]            Fix tests for latest Symfony version
+
+* 1.5.15 (2018-05-24)
+    * HOTFIX      #3988 [ContentBundle]         Date content type: Reading: Check if value is instance of DateTime
+    * HOTFIX      #3988 [BlockComponent]        Read: Ignore unknown types
+    * BUGFIX      #3967 [All]                   Fixed loading of minified js files for production
+    * HOTFIX      #3963 [ContentBundle]         Don't reload data when changing template in add form
+    * HOTFIX      #3953 [RouteBundle]           Fix route options with dash
+
+* 1.5.14 (2018-05-03)
+    * HOTFIX      #3946 [ContentBundle]         Single internal link: Clear selection when target doesn't exists
+    * HOTFIX      #3941 [WebsiteBundle]         Fix hideInSitemap flag for sitemap twig extension
+    * BUGFIX      #3926 [WebsiteBundle]         Fix profiler for none sulu routes
+
+* 1.5.13 (2018-04-23)
+    * BUGFIX      #3915 [ContactBundle]         Fix typehint in api ContactLocale constructor
+    * BUGFIX      #3918 [RestComponent]         CSV Export: Fixed serialization of boolean
+    * ENHANCEMENT #3876 [ContentBundle]         Reload data when changing template  
+
+* 1.5.12 (2018-03-19)
+    * ENHANCEMENT #3830 [All]                   Avoid duplicated run of composer update for travis
+    * BUGFIX      #3826 [ContentBundle]         Fix enabling of save button when toggler is changed
+    * HOTFIX      #3819 [MediaBundle]           Fix forgotten context binding for resetPreviewUrl method
+    * FEATURE     #3816 [All]                   Validate if grunt build was run for all bundles with circleci
+    * BUGFIX      #3806 [All]                   Fix compatibility on lowest and fix appveyor
+    * BUGFIX      #3351 [ContentBundle]         Fix spacing between rows and section in content template generation
+
+* 1.5.11 (2018-02-27)
+    * HOTFIX      #3789 [MediaBundle]           Check if current user is sulu user to avoid errors
+    * BUGFIX      #3639 [ContentBundle]         Fix structure internal flag and add webspace validate command
+    * ENHANCEMENT #3764 [Component]             Allow dynamic order of elements in webspace xml
+    * HOTFIX      #3752 [ContentBundle]         Overwrite 'doctrine:phpcr:workspace:import' set default to throw
+    * ENHANCEMENT #3775 [Component]             Use is iterable instead of custom is_array twig function in webspace dumper
+
+* 1.5.10 (2018-02-06)
+    * HOTFIX      #3739 [ContentBundle]         Added locale to content-teaser query
+    * ENHANCEMENT #3735 [DocumentManager]       Set proper default locale for document-manager
+    * ENHANCEMENT #3736 [WebsiteBundle]         Added exception when default_host is needed for sitemap generation
+    * HOTFIX      #3741 [ContentBundle]         Cleand-up xliff import/export component
+    * HOTFIX      #3730 [ContactBundle]         Fixed class parameter to load field-descriptor
+    * HOTFIX      #3720 [MediaBundle]           Added extension-guesser to fix wrong extensions on download
+
+* 1.5.9 (2018-01-18)
+    * HOTFIX      #3709 [CategoryBundle]        Category API: Fix bug when searching with rootKey parameter
+    * BUGFIX      #3693 [MediaBundle]           Fix retina flag in XmlFormatLoader11 & add tests for retina flag
 
 * 1.5.8 (2017-12-13)
     * HOTFIX      #3690 [ContentBundle]         Fix saving of not yet started text editor

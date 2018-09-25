@@ -326,6 +326,10 @@ class CategoryController extends RestController implements ClassResourceInterfac
             $parentIdsToExpand = array_merge($parentIdsToExpand, $pathIds);
         }
 
+        if ('csv' === $request->getRequestFormat()) {
+            $parentIdsToExpand = array_filter($parentIdsToExpand);
+        }
+
         // generate expressions for collected parent-categories
         $parentExpressions = [];
         foreach ($parentIdsToExpand as $parentId) {
@@ -336,13 +340,16 @@ class CategoryController extends RestController implements ClassResourceInterfac
             );
         }
 
-        // expand collected parents if search is not set, else search all categories
         if (!$request->get('search')) {
+            // expand collected parents if search is not set
             if (count($parentExpressions) >= 2) {
                 $listBuilder->addExpression($listBuilder->createOrExpression($parentExpressions));
             } elseif (count($parentExpressions) >= 1) {
                 $listBuilder->addExpression($parentExpressions[0]);
             }
+        } elseif ($request->get('search') && $parentId && !$expandIds) {
+            // filter for parentId when search is active and no expandedIds are set
+            $listBuilder->addExpression($parentExpressions[0]);
         }
 
         $results = $listBuilder->execute();

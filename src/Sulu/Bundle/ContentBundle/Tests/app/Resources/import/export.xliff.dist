@@ -214,7 +214,7 @@
             </trans-unit>
         </body>
     </file>
-        <file source-language="en" datatype="plaintext" original="%uuid_page_1%">
+    <file source-language="en" datatype="plaintext" original="%uuid_page_1%">
         <body>
             <!-- title: text_line -->
             <trans-unit id="36" resname="title">
@@ -227,8 +227,6 @@
                 <source>/child</source>
                 <target>/child</target>
             </trans-unit>
-
-
 
             <!-- article: text_editor -->
             <trans-unit id="40" resname="article" datatype="html">

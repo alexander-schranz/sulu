@@ -17,14 +17,6 @@ namespace Sulu\Component\Content\Import;
 interface WebspaceImportInterface
 {
     /**
-     * Add import format like XLIFF1.2.
-     *
-     * @param WebspaceFormatImportInterface $service
-     * @param $format
-     */
-    public function add($service, $format);
-
-    /**
      * Starts language import for given webspace and locale.
      *
      * @param string $webspaceKey
@@ -33,6 +25,8 @@ interface WebspaceImportInterface
      * @param $output
      * @param string $format
      * @param string $uuid
+     * @param bool $overrideSettings
+     * @param string $exportSuluVersion
      *
      * @return array
      */
@@ -43,6 +37,7 @@ interface WebspaceImportInterface
         $output = null,
         $format = '1.2.xliff',
         $uuid = null,
+        $overrideSettings = false,
         $exportSuluVersion = '1.3'
     );
 }

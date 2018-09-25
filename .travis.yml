@@ -22,9 +22,6 @@ matrix:
     - php: 7.1
       env:
         - COMPOSER_FLAGS="--prefer-dist --no-interaction
-    - php: 7.0
-      env:
-        - COMPOSER_FLAGS="--prefer-dist --no-interaction
         - SYMFONY__DATABASE__DRIVER=pdo_pgsql
         - SYMFONY__DATABASE__USER=postgres
         - SYMFONY__DATABASE__PASSWORD=postgres
@@ -58,11 +55,11 @@ before_script:
         java -jar downloads/jackrabbit-standalone-$JACKRABBIT_VERSION.jar > /dev/null &
     fi
   # the content tests are intensive and there are memory leaks, this is more pronounced with the Jackalope DBAL PHPCR implementation.
-  - echo "memory_limit=2048M" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+  - echo "memory_limit=-1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
   - phpenv config-rm xdebug.ini
   - composer self-update
+  - if [[ $SYMFONY__PHPCR__TRANSPORT = jackrabbit ]]; then composer require jackalope/jackalope-jackrabbit:~1.2  --no-update --no-interaction ; fi
   - composer update $COMPOSER_FLAGS
-  - if [[ $SYMFONY__PHPCR__TRANSPORT = jackrabbit ]]; then composer require jackalope/jackalope-jackrabbit:~1.2 ; fi
 
 script: 
   - time ./bin/runtests -i -a $TEST_FLAGS

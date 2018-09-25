@@ -59,7 +59,7 @@ class Webspace implements ArrayableInterface
      *
      * @var Segment[]
      */
-    private $segments;
+    private $segments = [];
 
     /**
      * The default segment defined for this webspace.
@@ -514,7 +514,7 @@ class Webspace implements ArrayableInterface
     /**
      * Returns a array of default template.
      *
-     * @return string
+     * @return string[]
      */
     public function getDefaultTemplates()
     {

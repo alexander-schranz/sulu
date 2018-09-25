@@ -121,6 +121,7 @@ class StructureSubscriber implements EventSubscriberInterface
                 'load_ghost_content' => true,
                 'clear_missing_content' => false,
                 'ignore_required' => false,
+                'structure_type' => null,
             ]
         );
         $options->setAllowedTypes('load_ghost_content', 'bool');
@@ -177,14 +178,8 @@ class StructureSubscriber implements EventSubscriberInterface
             return;
         }
 
-        $node = $event->getNode();
-        $propertyName = $this->getStructureTypePropertyName($document, $event->getLocale());
-        $structureType = $node->getPropertyValueWithDefault($propertyName, null);
-
         $rehydrate = $event->getOption('rehydrate');
-        if (!$structureType && $rehydrate) {
-            $structureType = $this->getDefaultStructureType($document);
-        }
+        $structureType = $this->getStructureType($event, $document, $rehydrate);
 
         $document->setStructureType($structureType);
 
@@ -194,12 +189,12 @@ class StructureSubscriber implements EventSubscriberInterface
             }
         }
 
-        $container = $this->getStructure($document, $structureType, $rehydrate);
+        $structure = $this->getStructure($document, $structureType, $rehydrate);
 
         // Set the property container
         $event->getAccessor()->set(
             'structure',
-            $container
+            $structure
         );
     }
 
@@ -233,6 +228,31 @@ class StructureSubscriber implements EventSubscriberInterface
             $this->getStructureTypePropertyName($document, $locale),
             $document->getStructureType()
         );
+    }
+
+    /**
+     * @param AbstractMappingEvent $event
+     * @param StructureBehavior $document
+     * @param bool $rehydrate
+     *
+     * @return string
+     */
+    private function getStructureType(AbstractMappingEvent $event, StructureBehavior $document, $rehydrate)
+    {
+        $structureType = $event->getOption('structure_type');
+        if ($structureType) {
+            return $structureType;
+        }
+
+        $node = $event->getNode();
+        $propertyName = $this->getStructureTypePropertyName($document, $event->getLocale());
+        $structureType = $node->getPropertyValueWithDefault($propertyName, null);
+
+        if (!$structureType && $rehydrate) {
+            return $this->getDefaultStructureType($document);
+        }
+
+        return $structureType;
     }
 
     /**
@@ -309,12 +329,23 @@ class StructureSubscriber implements EventSubscriberInterface
      * @param bool $ignoreRequired
      *
      * @throws MandatoryPropertyException
+     * @throws \RuntimeException
      */
     private function mapContentToNode($document, NodeInterface $node, $locale, $ignoreRequired)
     {
         $structure = $document->getStructure();
         $webspaceName = $this->inspector->getWebspace($document);
         $metadata = $this->inspector->getStructureMetadata($document);
+
+        if (!$metadata) {
+            throw new \RuntimeException(
+                sprintf(
+                    'Metadata for Structure Type "%s" was not found, does the file "%s.xml" exists?',
+                    $document->getStructureType(),
+                    $document->getStructureType()
+                )
+            );
+        }
 
         foreach ($metadata->getProperties() as $propertyName => $structureProperty) {
             if (TitleSubscriber::PROPERTY_NAME === $propertyName) {

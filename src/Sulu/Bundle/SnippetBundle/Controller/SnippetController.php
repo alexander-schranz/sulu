@@ -18,6 +18,7 @@ use FOS\RestBundle\View\View;
 use FOS\RestBundle\View\ViewHandler;
 use JMS\Serializer\SerializationContext;
 use PHPCR\NodeInterface;
+use Sulu\Bundle\SnippetBundle\Document\SnippetDocument;
 use Sulu\Bundle\SnippetBundle\Snippet\DefaultSnippetManagerInterface;
 use Sulu\Bundle\SnippetBundle\Snippet\SnippetRepository;
 use Sulu\Component\Content\Compat\StructureManagerInterface;
@@ -201,7 +202,7 @@ class SnippetController implements SecuredControllerInterface, ClassResourceInte
     {
         $locale = $this->getLocale($request);
 
-        $snippet = $this->documentManager->find($uuid, $locale);
+        $snippet = $this->findDocument($uuid, $locale);
         $view = View::create($snippet);
 
         return $this->viewHandler->handle($view);
@@ -235,6 +236,17 @@ class SnippetController implements SecuredControllerInterface, ClassResourceInte
         $document = $this->findDocument($uuid, $this->getLocale($request));
 
         $this->requestHashChecker->checkHash($request, $document, $document->getUuid());
+        if (!$this->checkAreaSnippet($request, $document)) {
+            return new JsonResponse(
+                [
+                    'structures' => [],
+                    'other' => [],
+                    'isDefault' => true,
+                ],
+                409
+            );
+        }
+
         $this->processForm($request, $document);
 
         return $this->handleView($document);
@@ -495,6 +507,7 @@ class SnippetController implements SecuredControllerInterface, ClassResourceInte
             $locale,
             [
                 'load_ghost_content' => false,
+                'load_shadow_content' => false,
             ]
         );
     }
@@ -537,5 +550,16 @@ class SnippetController implements SecuredControllerInterface, ClassResourceInte
         );
 
         return $this->viewHandler->handle($view);
+    }
+
+    private function checkAreaSnippet(Request $request, SnippetDocument $document)
+    {
+        $force = $request->headers->get('SuluForcePut', false);
+        $structureType = $request->request->get('template');
+
+        return $force
+            || $structureType === $document->getStructureType()
+            || !$this->defaultSnippetManager->isDefault($document->getUuid())
+            || $structureType === $this->defaultSnippetManager->loadType($document->getUuid());
     }
 }

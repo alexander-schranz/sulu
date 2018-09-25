@@ -153,7 +153,7 @@ define([
                 }.bind(this));
         },
 
-        loadData: function() {
+        loadData: function(template) {
             var promise = $.Deferred();
             if (!this.content) {
                 this.content = new Content({id: this.options.id});
@@ -164,6 +164,7 @@ define([
                     this.options.webspace,
                     this.options.language,
                     true,
+                    template,
                     {
                         success: function(content) {
                             this.data = content.toJSON();
@@ -195,8 +196,15 @@ define([
             }, this);
 
             // getter for content data
-            this.sandbox.on('sulu.content.contents.get-data', function(callback) {
-                // deep copy of object
+            this.sandbox.on('sulu.content.contents.get-data', function(callback, reloadData, template) {
+                if (this.options.id && reloadData === true && template) {
+                    this.loadData(template).then(function() {
+                        callback(this.sandbox.util.deepCopy(this.data), this.preview);
+                    }.bind(this));
+
+                    return;
+                }
+
                 callback(this.sandbox.util.deepCopy(this.data), this.preview);
             }.bind(this));
 
@@ -1137,7 +1145,7 @@ define([
 
                     this.sandbox.emit('husky.label.header.loading');
 
-                    ContentManager.removeDraft(this.data.id, this.options.language)
+                    ContentManager.removeDraft(this.data.id, this.options.language, this.options.webspace)
                         .then(function(response) {
                             this.sandbox.emit(
                                 'sulu.router.navigate',
