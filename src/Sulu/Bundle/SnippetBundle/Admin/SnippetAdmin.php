@@ -124,6 +124,7 @@ class SnippetAdmin extends Admin
                 ->setDefaultLocale($snippetLocales[0])
                 ->setAddRoute(static::ADD_FORM_ROUTE)
                 ->setEditRoute(static::EDIT_FORM_ROUTE)
+                ->enableDeletion()
                 ->getRoute(),
             $this->routeBuilderFactory->createResourceTabRouteBuilder(static::ADD_FORM_ROUTE, '/snippets/:locale/add')
                 ->setResourceKey('snippets')
