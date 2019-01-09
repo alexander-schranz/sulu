@@ -64,6 +64,24 @@ class DatagridRouteBuilder implements DatagridRouteBuilderInterface
         return $this;
     }
 
+    public function addToolbarActions(array $toolbarActions): DatagridRouteBuilderInterface
+    {
+        $oldToolbarActions = $this->route->getOption('toolbarActions');
+        $newToolbarActions = $oldToolbarActions ? array_merge($oldToolbarActions, $toolbarActions) : $toolbarActions;
+        $this->route->setOption('toolbarActions', $newToolbarActions);
+
+        return $this;
+    }
+
+    public function removeToolbarAction(string $toolbarAction): DatagridRouteBuilderInterface
+    {
+        $toolbarActions = $this->route->getOption('toolbarActions');
+        unset($toolbarActions[array_search($toolbarAction, $toolbarActions)]);
+        $this->route->setOption('toolbarActions', $toolbarActions);
+
+        return $this;
+    }
+
     public function setAddRoute(string $addRoute): DatagridRouteBuilderInterface
     {
         $this->route->setOption('addRoute', $addRoute);
@@ -88,6 +106,20 @@ class DatagridRouteBuilder implements DatagridRouteBuilderInterface
     public function disableSearching(): DatagridRouteBuilderInterface
     {
         $this->route->setOption('searchable', false);
+
+        return $this;
+    }
+
+    public function enableDeletion(): DatagridRouteBuilderInterface
+    {
+        $this->addToolbarActions(['sulu_admin.delete']);
+
+        return $this;
+    }
+
+    public function disableDeletion(): DatagridRouteBuilderInterface
+    {
+        $this->removeToolbarAction('sulu_admin.delete');
 
         return $this;
     }

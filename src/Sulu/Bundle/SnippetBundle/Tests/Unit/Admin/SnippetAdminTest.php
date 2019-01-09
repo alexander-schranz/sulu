@@ -77,6 +77,7 @@ class SnippetAdminTest extends TestCase
         $this->assertAttributeEquals('sulu_snippet.datagrid', 'name', $listRoute);
         $this->assertAttributeEquals([
             'title' => 'sulu_snippet.snippets',
+            'toolbarActions' => ['sulu_admin.delete'],
             'resourceKey' => 'snippets',
             'adapters' => ['table'],
             'addRoute' => 'sulu_snippet.add_form',

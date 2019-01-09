@@ -468,10 +468,14 @@ test('Should render the delete item enabled only if something is selected', () =
     const withToolbar = require('../../../containers/Toolbar/withToolbar');
     const Datagrid = require('../Datagrid').default;
     const toolbarFunction = findWithHighOrderFunction(withToolbar, Datagrid);
+    const toolbarActionRegistry = require('../registries/ToolbarActionRegistry').default;
+    const DeleteToolbarAction = require('../toolbarActions/DeleteToolbarAction').default;
+    toolbarActionRegistry.add('sulu_admin.delete', DeleteToolbarAction);
     const router = {
         bind: jest.fn(),
         route: {
             options: {
+                toolbarActions: ['sulu_admin.delete'],
                 resourceKey: 'test',
                 adapters: ['table'],
             },
@@ -590,11 +594,15 @@ test('Should delete selected items when delete button is clicked', () => {
 
     const withToolbar = require('../../../containers/Toolbar/withToolbar');
     const Datagrid = require('../Datagrid').default;
+    const toolbarActionRegistry = require('../registries/ToolbarActionRegistry').default;
+    const DeleteToolbarAction = require('../toolbarActions/DeleteToolbarAction').default;
+    toolbarActionRegistry.add('sulu_admin.delete', DeleteToolbarAction);
     const toolbarFunction = findWithHighOrderFunction(withToolbar, Datagrid);
     const router = {
         bind: jest.fn(),
         route: {
             options: {
+                toolbarActions: ['sulu_admin.delete'],
                 resourceKey: 'test',
                 adapters: ['table'],
             },
