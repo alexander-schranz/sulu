@@ -1080,6 +1080,8 @@ class MediaControllerTest extends SuluTestCase
             ]
         );
 
+        $this->assertHttpStatusCode(200, $client->getResponse());
+
         $this->assertEquals(1, count($client->getRequest()->files->all()));
 
         $response = json_decode($client->getResponse()->getContent());

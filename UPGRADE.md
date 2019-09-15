@@ -1,5 +1,28 @@
 # Upgrade
 
+## dev-develop
+
+### Api Entities removed
+
+To support easier extending of entities the following `ApiEntity` wrapper classes where removed
+and the methods moved to the entity classes:
+
+**`Sulu\Bundle\MediaBundle\Api\Media`**
+
+```php
+// Before
+$apiMedia = new Api\Media($entity, 'de');
+$apiMedia->getTags();
+$apiMedia->getCategories();
+$apiMedia->getTargetGroups();
+
+// After
+$entity->setLocale('de');
+$entity->getTagNames();
+$entity->getCategoryIds();
+$entity->getTargetGroupIds();
+```
+
 ## 2.0.0-RC2
 
 When upgrading also have a look at the changes in the
