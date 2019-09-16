@@ -36,7 +36,7 @@ class SearchIntegrationTest extends SuluTestCase
     private $webspaceDocument;
 
     /**
-     * @var ApiMedia
+     * @var Media
      */
     private $media;
 

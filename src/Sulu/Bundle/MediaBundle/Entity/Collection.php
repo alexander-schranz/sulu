@@ -11,12 +11,74 @@
 
 namespace Sulu\Bundle\MediaBundle\Entity;
 
+use Hateoas\Configuration\Annotation\Embedded;
+use Hateoas\Configuration\Annotation\Relation;
+use Hateoas\Configuration\Annotation\Route;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection as DoctrineCollection;
-use JMS\Serializer\Annotation\Exclude;
+use JMS\Serializer\Annotation\ExclusionPolicy;
+use JMS\Serializer\Annotation\SerializedName;
+use JMS\Serializer\Annotation\VirtualProperty;
+use Sulu\Component\Media\SystemCollections\SystemCollectionManagerInterface;
 use Sulu\Component\Security\Authentication\UserInterface;
 
 /**
+ * @ExclusionPolicy("all")
+ * FIXME Remove limit = 9999 after create cget without pagination
+ * @Relation(
+ *      "all",
+ *      href = @Route(
+ *          "sulu_media.cget_media",
+ *          parameters = { "collection" = "expr(object.getId())", "limit" = 9999, "locale" = "expr(object.getLocale())" }
+ *      )
+ * )
+ * @Relation(
+ *      "filterByTypes",
+ *      href = @Route(
+ *          "sulu_media.cget_media",
+ *          parameters = {
+ *              "collection" = "expr(object.getId())",
+ *              "types" = "{types}",
+ *              "locale" = "expr(object.getLocale())"
+ *          }
+ *      )
+ * )
+ * @Relation(
+ *      "self",
+ *      href = @Route(
+ *          "sulu_media.get_collection",
+ *          parameters = { "id" = "expr(object.getId())", "locale" = "expr(object.getLocale())" }
+ *      )
+ * )
+ * @Relation(
+ *      "children",
+ *      href = @Route(
+ *          "sulu_media.get_collection",
+ *          parameters = { "id" = "expr(object.getId())", "depth" = 1, "sortBy": "title", "locale" = "expr(object.getLocale())" }
+ *      )
+ * )
+ * @Relation(
+ *     name = "collections",
+ *     embedded = @Embedded(
+ *         "expr(object.getCurrentChildren())",
+ *         xmlElementName = "collections"
+ *     )
+ * )
+ * @Relation(
+ *     name = "parent",
+ *     embedded = @Embedded(
+ *         "expr(object.getCurrentParent())",
+ *         xmlElementName = "parent"
+ *     )
+ * )
+ * @Relation(
+ *     name = "breadcrumb",
+ *     embedded = @Embedded(
+ *         "expr(object.getBreadcrumb())",
+ *         xmlElementName = "breadcrumb"
+ *     )
+ * )
+ *
  * Collection.
  */
 class Collection implements CollectionInterface
@@ -33,19 +95,16 @@ class Collection implements CollectionInterface
 
     /**
      * @var int
-     * @Exclude
      */
     protected $lft;
 
     /**
      * @var int
-     * @Exclude
      */
     protected $rgt;
 
     /**
      * @var int
-     * @Exclude
      */
     protected $depth;
 
@@ -66,13 +125,11 @@ class Collection implements CollectionInterface
 
     /**
      * @var UserInterface
-     * @Exclude
      */
     protected $changer;
 
     /**
      * @var UserInterface
-     * @Exclude
      */
     protected $creator;
 
@@ -88,7 +145,6 @@ class Collection implements CollectionInterface
 
     /**
      * @var DoctrineCollection|MediaInterface[]
-     * @Exclude
      */
     private $media;
 
@@ -107,6 +163,47 @@ class Collection implements CollectionInterface
      */
     private $defaultMeta;
 
+    /**
+     * @var string|null
+     */
+    private $currentLocale;
+
+
+    /**
+     * @var array|null
+     */
+    protected $currentPreview;
+
+    /**
+     * @var array
+     */
+    protected $currentProperties = [];
+
+    /**
+     * @var array|null
+     */
+    protected $currentBreadcrumb;
+
+    /**
+     * @var int
+     */
+    protected $currentMediaCount = 0;
+
+    /**
+     * @var int
+     */
+    protected $currentSubCollectionCount = 0;
+
+    /**
+     * @var self|null
+     */
+    protected $currentParent;
+
+    /**
+     * @var array|null
+     */
+    protected $currentChildren;
+
     public function __construct()
     {
         $this->meta = new ArrayCollection();
@@ -115,6 +212,27 @@ class Collection implements CollectionInterface
     }
 
     /**
+     * @VirtualProperty
+     * @SerializedName("locale")
+     *
+     * @return string
+     */
+    public function getLocale(): ?string
+    {
+        return $this->currentLocale;
+    }
+
+    public function setLocale(?string $locale): self
+    {
+        $this->currentLocale = $locale;
+
+        return $this;
+    }
+
+    /**
+     * @VirtualProperty
+     * @SerializedName("id")
+     *
      * Get id.
      *
      * @return int
@@ -172,6 +290,16 @@ class Collection implements CollectionInterface
         return $this->creator;
     }
 
+    public function getCreatorName(): ?string
+    {
+        $user = $this->getCreator();
+        if ($user) {
+            return $user->getFullName();
+        }
+
+        return null;
+    }
+
     /**
      * Set style.
      *
@@ -181,6 +309,10 @@ class Collection implements CollectionInterface
      */
     public function setStyle($style)
     {
+        if (!is_string($style)) {
+            $style = json_encode($style);
+        }
+
         $this->style = $style;
 
         return $this;
@@ -194,6 +326,21 @@ class Collection implements CollectionInterface
     public function getStyle()
     {
         return $this->style;
+    }
+
+    /**
+     * @VirtualProperty
+     * @SerializedName("style")
+     *
+     * @return array
+     */
+    public function getStyleData()
+    {
+        if (!$this->style) {
+            return [];
+        }
+
+        return json_decode($this->style, true);
     }
 
     /**
@@ -269,6 +416,9 @@ class Collection implements CollectionInterface
     }
 
     /**
+     * @VirtualProperty
+     * @SerializedName("created")
+     *
      * Get created.
      *
      * @return \DateTime
@@ -279,6 +429,9 @@ class Collection implements CollectionInterface
     }
 
     /**
+     * @VirtualProperty
+     * @SerializedName("changed")
+     *
      * Get changed.
      *
      * @return \DateTime
@@ -303,6 +456,9 @@ class Collection implements CollectionInterface
     }
 
     /**
+     * @VirtualProperty
+     * @SerializedName("type")
+     *
      * Get type.
      *
      * @return CollectionType
@@ -313,6 +469,9 @@ class Collection implements CollectionInterface
     }
 
     /**
+     * @VirtualProperty
+     * @SerializedName("key")
+     *
      * Set key.
      *
      * @return string
@@ -345,6 +504,27 @@ class Collection implements CollectionInterface
     }
 
     /**
+     * Indicates if sub collections exists.
+     *
+     * @VirtualProperty
+     * @SerializedName("hasChildren")
+     *
+     * @return bool
+     */
+    public function getHasChildren()
+    {
+        if ($this->currentSubCollectionCount > 0) {
+            return true;
+        }
+
+        if (null !== ($children = $this->getChildren())) {
+            return $children->count() > 0;
+        }
+
+        return false;
+    }
+
+    /**
      * @param DoctrineCollection $children
      */
     public function setChildren(DoctrineCollection $children)
@@ -369,11 +549,20 @@ class Collection implements CollectionInterface
     /**
      * Get parent.
      *
-     * @return CollectionInterface
+     * @return CollectionInterface|null
      */
     public function getParent()
     {
         return $this->parent;
+    }
+
+    public function getParentId(): ?int
+    {
+        if (!$this->parent) {
+            return null;
+        }
+
+        return $this->parent->getId();
     }
 
     /**
@@ -459,6 +648,20 @@ class Collection implements CollectionInterface
     }
 
     /**
+     * Add children.
+     *
+     * @param CollectionInterface $child
+     *
+     * @return Collection
+     */
+    public function addChild(CollectionInterface $child)
+    {
+        $this->addChildren($child);
+
+        return $this;
+    }
+
+    /**
      * Remove children.
      *
      * @param CollectionInterface $children
@@ -466,6 +669,16 @@ class Collection implements CollectionInterface
     public function removeChildren(CollectionInterface $children)
     {
         $this->children->removeElement($children);
+    }
+
+    /**
+     * Remove children.
+     *
+     * @param CollectionInterface $child
+     */
+    public function removeChild(CollectionInterface $child)
+    {
+        $this->children->removeElement($child);
     }
 
     /**
@@ -498,5 +711,273 @@ class Collection implements CollectionInterface
     public function getSecurityContext()
     {
         return 'sulu.media.collections';
+    }
+
+    /**
+     * @param string|null $description
+     *
+     * @return $this
+     */
+    public function setDescription(?string $description): self
+    {
+        $this->getCurrentMeta(true)->setDescription($description);
+
+        return $this;
+    }
+
+    /**
+     * @VirtualProperty
+     * @SerializedName("description")
+     *
+     * @return string
+     */
+    public function getDescription(): ?string
+    {
+        $meta = $this->getCurrentMeta();
+        if ($meta) {
+            return $meta->getDescription();
+        }
+
+        return null;
+    }
+
+    /**
+     * @param string $title
+     *
+     * @return $this
+     */
+    public function setTitle(?string $title): self
+    {
+        $this->getCurrentMeta(true)->setTitle($title);
+
+        return $this;
+    }
+
+    /**
+     * @VirtualProperty
+     * @SerializedName("title")
+     *
+     * @return string
+     */
+    public function getTitle(): ?string
+    {
+        $meta = $this->getCurrentMeta();
+        if ($meta) {
+            return $meta->getTitle();
+        }
+
+        return null;
+    }
+
+    /**
+     * @VirtualProperty
+     * @SerializedName("locked")
+     *
+     * @return string
+     */
+    public function getLocked()
+    {
+        $type = $this->getType();
+
+        return !$type || SystemCollectionManagerInterface::COLLECTION_TYPE === $type->getKey();
+    }
+
+    /**
+     * @param bool $create
+     *
+     * @return CollectionMeta
+     */
+    private function getCurrentMeta($create = false)
+    {
+        $locale = $this->getLocale();
+
+        // get meta only with this locale
+        $metaCollectionFiltered = $this->meta->filter(
+            function($meta) use ($locale) {
+                /** @var CollectionMeta $meta */
+                if ($meta->getLocale() == $locale) {
+                    return true;
+                }
+
+                return false;
+            }
+        );
+
+        // check if meta was found
+        if ($metaCollectionFiltered->isEmpty()) {
+            if ($create) {
+                // create when not found
+                $meta = new CollectionMeta();
+                $meta->setLocale($locale);
+                $meta->setCollection($this);
+                $this->addMeta($meta);
+
+                return $meta;
+            }
+
+            // return first when create false
+            return $this->getDefaultMeta();
+        }
+
+        // return exists
+        return $metaCollectionFiltered->first();
+    }
+
+    /**
+     * @VirtualProperty
+     * @SerializedName("breadcrumb")
+     */
+    public function getBreadcrumb(): ?array
+    {
+        return $this->currentBreadcrumb;
+    }
+
+    /**
+     * @param array|null $breadcrumb
+     */
+    public function setBreadcrumb(?array $breadcrumb): self
+    {
+        $this->currentBreadcrumb = $breadcrumb;
+
+        return $this;
+    }
+
+    /**
+     * @param array $properties
+     *
+     * @return $this
+     */
+    public function setProperties(array $properties): self
+    {
+        $this->currentProperties = $properties;
+
+        return $this;
+    }
+
+    /**
+     * @VirtualProperty
+     * @SerializedName("properties")
+     *
+     * @return array
+     */
+    public function getProperties(): array
+    {
+        return $this->currentProperties;
+    }
+
+    /**
+     * @param array $children
+     *
+     * @return $this
+     */
+    public function setCurrentChildren(array $children): self
+    {
+        $this->currentChildren = $children;
+
+        return $this;
+    }
+
+    /**
+     * @VirtualProperty
+     * @SerializedName("children")
+     *
+     * @return array
+     */
+    public function getCurrentChildren(): ?array
+    {
+        return $this->currentChildren;
+    }
+
+    /**
+     * @param self|null $parent
+     *
+     * @return $this
+     */
+    public function setCurrentParent(?self $parent): self
+    {
+        $this->currentParent = $parent;
+
+        return $this;
+    }
+
+    /**
+     * @VirtualProperty
+     * @SerializedName("parent")
+     *
+     * @return self|null
+     */
+    public function getCurrentParent(): ?self
+    {
+        return $this->currentParent;
+    }
+
+    /**
+     * @VirtualProperty
+     * @SerializedName("preview")
+     *
+     * @return array|null
+     */
+    public function getPreview(): ?array
+    {
+        return $this->currentPreview;
+    }
+
+    /**
+     * @param array|null $preview
+     *
+     * @return $this
+     */
+    public function setPreview(?array $preview): self
+    {
+        $this->currentPreview = $preview;
+
+        return $this;
+    }
+
+    /**
+     * @VirtualProperty
+     * @SerializedName("mediaCount")
+     */
+    public function getMediaCount(): int
+    {
+        return $this->currentMediaCount;
+    }
+
+    public function setMediaCount(int $mediaCount): self
+    {
+        $this->currentMediaCount = $mediaCount;
+
+        return $this;
+    }
+
+    /**
+     * @VirtualProperty
+     * @SerializedName("subCollectionCount")
+     *
+     * @return int The number of sub collections contained by the collection
+     */
+    public function getSubCollectionCount(): int
+    {
+        return $this->currentSubCollectionCount;
+    }
+
+    public function setSubCollectionCount(int $subCollectionCount): self
+    {
+        $this->currentSubCollectionCount = $subCollectionCount;
+
+        return $this;
+    }
+
+    /**
+     * @VirtualProperty
+     * @SerializedName("objectCount")
+     *
+     * Returns the total number of all types of sub objects of this collection.
+     *
+     * @return int
+     */
+    public function getObjectCount()
+    {
+        return $this->getMediaCount() + $this->getSubCollectionCount();
     }
 }

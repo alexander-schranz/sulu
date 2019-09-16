@@ -240,7 +240,7 @@ class CollectionControllerTest extends SuluTestCase
             foreach ($collections as $collection) {
                 $result[$collection->title] = [
                     'title' => $collection->title,
-                    'parent' => $collection->_embedded->parent ? $collection->_embedded->parent->title : null,
+                    'parent' => $collection->parent ? $collection->parent->title : null,
                     'collections' => $this->mapCollections($collection->_embedded->collections),
                 ];
             }
@@ -1543,6 +1543,9 @@ class CollectionControllerTest extends SuluTestCase
 
         $items = $this->mapCollections($response->_embedded->collections);
         $this->assertCount(2, $items);
+        dump(['title' => $titles[4], 'parent' => $titles[3], 'collections' => []]);
+        dump($items);
+        exit;
         $this->assertContains(['title' => $titles[4], 'parent' => $titles[3], 'collections' => []], $items);
         $this->assertContains(['title' => $titles[5], 'parent' => $titles[3], 'collections' => []], $items);
 

@@ -12,7 +12,7 @@
 namespace Sulu\Bundle\MediaBundle\Collection\Manager;
 
 use Doctrine\ORM\Tools\Pagination\Paginator;
-use Sulu\Bundle\MediaBundle\Api\Collection;
+use Sulu\Bundle\MediaBundle\Entity\Collection;
 use Sulu\Bundle\MediaBundle\Media\Exception\CollectionNotFoundException;
 use Sulu\Component\Rest\ListBuilder\Doctrine\FieldDescriptor\DoctrineFieldDescriptor;
 
@@ -81,7 +81,7 @@ interface CollectionManagerInterface
      * @param array $sortBy
      * @param bool $systemCollections Whether or not system collectino should be included in the result
      *
-     * @return \Sulu\Bundle\MediaBundle\Api\Collection[]
+     * @return \Sulu\Bundle\MediaBundle\Entity\Collection[]
      */
     public function getTree($locale, $offset, $limit, $search, $depth = 0, $sortBy = [], $systemCollections = true);
 

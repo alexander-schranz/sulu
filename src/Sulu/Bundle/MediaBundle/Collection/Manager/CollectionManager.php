@@ -14,8 +14,7 @@ namespace Sulu\Bundle\MediaBundle\Collection\Manager;
 use Doctrine\DBAL\DBALException;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Tools\Pagination\Paginator;
-use Sulu\Bundle\MediaBundle\Api\Collection;
-use Sulu\Bundle\MediaBundle\Entity\Collection as CollectionEntity;
+use Sulu\Bundle\MediaBundle\Entity\Collection;
 use Sulu\Bundle\MediaBundle\Entity\CollectionInterface;
 use Sulu\Bundle\MediaBundle\Entity\CollectionRepositoryInterface;
 use Sulu\Bundle\MediaBundle\Entity\CollectionType;
@@ -190,15 +189,15 @@ class CollectionManager implements CollectionManagerInterface
         /** @var Collection[] $result collections without parent */
         $result = [];
         foreach ($collectionSet as $collection) {
-            $apiEntity = new Collection($collection, $locale);
-            $this->addPreview($apiEntity);
+            $collection->setLocale($locale);
+            $this->addPreview($collection);
 
-            $collections[$collection->getId()] = $apiEntity;
+            $collections[$collection->getId()] = $collection;
 
             if (null !== $collection->getParent()) {
-                $collections[$collection->getParent()->getId()]->addChild($apiEntity);
+                $collections[$collection->getParent()->getId()]->addChild($collection);
             } else {
-                $result[] = $apiEntity;
+                $result[] = $collection;
             }
         }
 
@@ -218,7 +217,7 @@ class CollectionManager implements CollectionManagerInterface
             'systemCollections' => $systemCollections,
         ];
 
-        /** @var CollectionEntity[] $entities */
+        /** @var Collection[] $entities */
         $entities = $this->collectionRepository->findCollectionSet(
             $depth,
             $filter,
@@ -428,7 +427,7 @@ class CollectionManager implements CollectionManagerInterface
         $data['changed'] = new \DateTime();
         $data['created'] = new \DateTime();
 
-        $collectionEntity = new CollectionEntity();
+        $collectionEntity = new Collection();
         $collection = $this->getApiEntity($collectionEntity, $data['locale']);
 
         $collection = $this->setDataToCollection($collection, $data);
@@ -600,7 +599,7 @@ class CollectionManager implements CollectionManagerInterface
      * @param int $id
      * @param string $locale
      *
-     * @return array
+     * @return array|null
      */
     protected function getPreview($id, $locale)
     {
@@ -672,18 +671,16 @@ class CollectionManager implements CollectionManagerInterface
     /**
      * Prepare an api entity.
      *
-     * @param CollectionInterface $entity
+     * @param CollectionInterface|Collection $entity
      * @param string $locale
-     * @param CollectionEntity[] $entities nested set
+     * @param Collection[] $entities nested set
      * @param array $breadcrumbEntities
      *
      * @return Collection
      */
     protected function getApiEntity(CollectionInterface $entity, $locale, $entities = null, $breadcrumbEntities = null)
     {
-        $apiEntity = new Collection($entity, $locale);
-
-        $children = null;
+        $entity->setLocale($locale);
 
         if (null !== $entities) {
             $children = [];
@@ -692,23 +689,25 @@ class CollectionManager implements CollectionManagerInterface
                     $children[] = $this->getApiEntity($possibleChild, $locale, $entities);
                 }
             }
+            $entity->setCurrentChildren($children);
         }
 
-        $apiEntity->setChildren($children);
-        if (null !== $entity->getParent()) {
-            $apiEntity->setParent($this->getApiEntity($entity->getParent(), $locale));
+        /** @var Collection $parent */
+        $parent = $entity->getParent();
+        if ($parent) {
+            $entity->setCurrentParent($this->getApiEntity($parent, $locale));
         }
 
         if (null !== $breadcrumbEntities) {
-            $this->setBreadcrumbToCollection($apiEntity, $locale, $breadcrumbEntities);
+            $this->setBreadcrumbToCollection($entity, $locale, $breadcrumbEntities);
         }
 
         if ($entity && $entity->getId()) {
-            $apiEntity->setMediaCount($this->collectionRepository->countMedia($entity));
-            $apiEntity->setSubCollectionCount($this->collectionRepository->countSubCollections($entity));
+            $entity->setMediaCount($this->collectionRepository->countMedia($entity));
+            $entity->setSubCollectionCount($this->collectionRepository->countSubCollections($entity));
         }
 
-        return $this->addPreview($apiEntity);
+        return $this->addPreview($entity);
     }
 
     /**
