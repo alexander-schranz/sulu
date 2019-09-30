@@ -16,8 +16,8 @@ use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
 use PHPUnit\Framework\TestCase;
 use Prophecy\Argument;
-use Sulu\Bundle\CategoryBundle\Api\Category as ApiCategory;
 use Sulu\Bundle\CategoryBundle\Category\CategoryManagerInterface;
+use Sulu\Bundle\CategoryBundle\Entity\Category;
 use Sulu\Bundle\CategoryBundle\Entity\CategoryInterface as EntityCategory;
 use Sulu\Bundle\CategoryBundle\Twig\CategoryTwigExtension;
 use Sulu\Component\Cache\Memoize;
@@ -41,15 +41,15 @@ class CategoryTwigExtensionTest extends TestCase
     }
 
     /**
-     * Returns ApiCategory with given Data (id, name).
+     * Returns Category with given Data (id, name).
      *
      * @param array $data
      *
-     * @return ApiCategory
+     * @return Category
      */
     private function createCategoryEntity(array $data)
     {
-        $category = $this->prophesize(ApiCategory::class);
+        $category = $this->prophesize(Category::class);
         $category->getId()->willReturn($data['id']);
         $category->getName()->willReturn($data['name']);
 

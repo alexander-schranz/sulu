@@ -13,7 +13,7 @@ namespace Sulu\Bundle\CategoryBundle\Category;
 
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
-use Sulu\Bundle\CategoryBundle\Api\Category as CategoryWrapper;
+use Sulu\Bundle\CategoryBundle\Entity\Category;
 use Sulu\Bundle\CategoryBundle\Entity\CategoryInterface;
 use Sulu\Bundle\CategoryBundle\Entity\CategoryMetaRepositoryInterface;
 use Sulu\Bundle\CategoryBundle\Entity\CategoryRepositoryInterface;
@@ -157,21 +157,19 @@ class CategoryManager implements CategoryManagerInterface
      * Returns category-translation or create a new one.
      *
      * @param CategoryInterface $category
-     * @param CategoryWrapper $categoryWrapper
      * @param string $locale
      *
      * @return CategoryTranslationInterface
      */
     private function findOrCreateCategoryTranslation(
         CategoryInterface $category,
-        CategoryWrapper $categoryWrapper,
         $locale
     ) {
         $translationEntity = $category->findTranslationByLocale($locale);
         if (!$translationEntity) {
             $translationEntity = $this->categoryTranslationRepository->createNew();
             $translationEntity->setLocale($locale);
-            $categoryWrapper->setTranslation($translationEntity);
+            $category->setTranslation($translationEntity);
         }
 
         return $translationEntity;
@@ -196,20 +194,18 @@ class CategoryManager implements CategoryManagerInterface
             $categoryEntity->setChanger($user);
         }
 
-        $categoryWrapper = $this->getApiObject($categoryEntity, $locale);
-
         if (!$patch || $this->getProperty($data, 'name')) {
-            $translationEntity = $this->findOrCreateCategoryTranslation($categoryEntity, $categoryWrapper, $locale);
+            $translationEntity = $this->findOrCreateCategoryTranslation($categoryEntity, $locale);
             $translationEntity->setTranslation($this->getProperty($data, 'name', null));
         }
 
         if (!$patch || $this->getProperty($data, 'description')) {
-            $translationEntity = $this->findOrCreateCategoryTranslation($categoryEntity, $categoryWrapper, $locale);
+            $translationEntity = $this->findOrCreateCategoryTranslation($categoryEntity, $locale);
             $translationEntity->setDescription($this->getProperty($data, 'description', null));
         }
 
         if (!$patch || $this->getProperty($data, 'medias')) {
-            $translationEntity = $this->findOrCreateCategoryTranslation($categoryEntity, $categoryWrapper, $locale);
+            $translationEntity = $this->findOrCreateCategoryTranslation($categoryEntity, $locale);
             $translationEntity->setMedias(
                 array_map(
                     function($item) {
@@ -222,7 +218,7 @@ class CategoryManager implements CategoryManagerInterface
 
         $key = $this->getProperty($data, 'key');
         if (!$patch || $key) {
-            $categoryWrapper->setKey($key);
+            $categoryEntity->setKey($key);
         }
         if (!$patch || $this->getProperty($data, 'meta')) {
             $metaData = (is_array($this->getProperty($data, 'meta'))) ? $this->getProperty($data, 'meta') : [];
@@ -236,21 +232,20 @@ class CategoryManager implements CategoryManagerInterface
                 $metaEntity->setLocale($this->getProperty($meta, 'locale'));
                 $metaEntities[] = $metaEntity;
             }
-            $categoryWrapper->setMeta($metaEntities);
+            $categoryEntity->setMeta($metaEntities);
         }
         if (!$patch || $this->getProperty($data, 'parent')) {
             $parentCategory = null;
             if ($this->getProperty($data, 'parent')) {
                 $parentCategory = $this->findById($this->getProperty($data, 'parent'));
             }
-            $categoryWrapper->setParent($parentCategory);
+            $categoryEntity->setParent($parentCategory);
         }
 
-        if (!$categoryWrapper->getName()) {
+        if (!$categoryEntity->getName()) {
             throw new CategoryNameMissingException();
         }
 
-        $categoryEntity = $categoryWrapper->getEntity();
         $this->em->persist($categoryEntity);
 
         try {
@@ -311,21 +306,20 @@ class CategoryManager implements CategoryManagerInterface
      * and provides neat getters and setters. If the given object is already an API-object,
      * the associated entity is used for wrapping.
      *
-     * @param $category
+     * @param Category $category
      * @param string $locale
      *
-     * @return null|CategoryWrapper
+     * @return null|Category
      */
     public function getApiObject($category, $locale)
     {
-        if ($category instanceof CategoryWrapper) {
-            $category = $category->getEntity();
-        }
-        if (!$category instanceof CategoryInterface) {
-            return;
+        if (!$category instanceof Category) {
+            return null;
         }
 
-        return new CategoryWrapper($category, $locale);
+        $category->setLocale($locale);
+
+        return $category;
     }
 
     /**

@@ -14,10 +14,10 @@ namespace Sulu\Bundle\CategoryBundle\Tests\Unit\Category;
 use Doctrine\Common\Persistence\ObjectManager;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
-use Sulu\Bundle\CategoryBundle\Api\Category;
 use Sulu\Bundle\CategoryBundle\Category\CategoryManager;
 use Sulu\Bundle\CategoryBundle\Category\CategoryManagerInterface;
 use Sulu\Bundle\CategoryBundle\Category\KeywordManagerInterface;
+use Sulu\Bundle\CategoryBundle\Entity\Category;
 use Sulu\Bundle\CategoryBundle\Entity\CategoryInterface;
 use Sulu\Bundle\CategoryBundle\Entity\CategoryMetaRepositoryInterface;
 use Sulu\Bundle\CategoryBundle\Entity\CategoryRepositoryInterface;
@@ -92,12 +92,14 @@ class CategoryManagerTest extends TestCase
 
     public function testGetApiObject()
     {
-        $entity = $this->prophesize(CategoryInterface::class);
+        $entity = $this->prophesize(Category::class);
         $wrapper = $this->categoryManager->getApiObject($entity->reveal(), 'en');
-        $this->assertTrue($wrapper instanceof \Sulu\Bundle\CategoryBundle\Api\Category);
+        $this->assertTrue($wrapper instanceof Category);
+        $this->assertSame('en', $wrapper->getLocale());
 
         $wrapper2 = $this->categoryManager->getApiObject($wrapper, 'en');
-        $this->assertSame($wrapper->getEntity(), $wrapper2->getEntity());
+        $this->assertSame($wrapper, $wrapper2);
+        $this->assertSame('en', $wrapper2->getLocale());
 
         $wrapper = $this->categoryManager->getApiObject(null, 'de');
         $this->assertEquals(null, $wrapper);
@@ -106,22 +108,24 @@ class CategoryManagerTest extends TestCase
     public function testGetApiObjects()
     {
         $wrapperEntity = $this->prophesize(Category::class);
-        $wrapperEntity->getEntity()->willReturn($this->prophesize(CategoryInterface::class)->reveal());
 
         $entities = [
-            $this->prophesize(CategoryInterface::class)->reveal(),
+            $this->prophesize(Category::class)->reveal(),
             null,
-            $this->prophesize(CategoryInterface::class)->reveal(),
+            $this->prophesize(Category::class)->reveal(),
             $wrapperEntity->reveal(),
             null,
         ];
 
         $wrappers = $this->categoryManager->getApiObjects($entities, 'en');
 
-        $this->assertTrue($wrappers[0] instanceof \Sulu\Bundle\CategoryBundle\Api\Category);
+        $this->assertTrue($wrappers[0] instanceof Category);
+        $this->assertSame('en', $wrappers[0]->getLocale());
         $this->assertEquals(null, $wrappers[1]);
-        $this->assertTrue($wrappers[2] instanceof \Sulu\Bundle\CategoryBundle\Api\Category);
-        $this->assertTrue($wrappers[3] instanceof \Sulu\Bundle\CategoryBundle\Api\Category);
+        $this->assertTrue($wrappers[2] instanceof Category);
+        $this->assertSame('en', $wrappers[2]->getLocale());
+        $this->assertTrue($wrappers[3] instanceof Category);
+        $this->assertSame('en', $wrappers[3]->getLocale());
         $this->assertEquals(null, $wrappers[4]);
     }
 
