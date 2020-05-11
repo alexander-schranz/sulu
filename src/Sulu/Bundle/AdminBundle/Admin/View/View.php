@@ -76,7 +76,7 @@ class View
      * @Expose()
      * @Groups({"fullView"})
      */
-    private $rerenderAttributes;
+    private $rerenderAttributes = [];
 
     public function __construct(string $name, string $path, string $type)
     {
@@ -168,5 +168,20 @@ class View
         $this->rerenderAttributes[] = $attribute;
 
         return $this;
+    }
+
+    public function getOptions(): array
+    {
+        return $this->options;
+    }
+
+    public function getAttributeDefaults(): array
+    {
+        return $this->attributeDefaults;
+    }
+
+    public function getRerenderAttributes(): array
+    {
+        return $this->rerenderAttributes;
     }
 }

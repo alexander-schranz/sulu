@@ -165,6 +165,11 @@
             <tag name="console.command"/>
         </service>
 
+        <service id="sulu_admin.debug_view_command" class="Sulu\Bundle\AdminBundle\Command\DebugViewCommand">
+            <argument type="service" id="sulu_admin.view_registry" />
+            <tag name="console.command"/>
+        </service>
+
         <service
             id="sulu_admin.download_language_command"
             class="Sulu\Bundle\AdminBundle\Command\DownloadLanguageCommand"
