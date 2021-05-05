@@ -621,10 +621,10 @@ class PageController extends AbstractRestController implements ClassResourceInte
         $webspaces = [];
         /** @var Webspace $webspace */
         foreach ($this->webspaceManager->getWebspaceCollection() as $webspace) {
-            if (false === $this->securityChecker->hasPermission(
-                    new SecurityCondition('sulu.webspaces.' . $webspace->getKey(), $locale, SecurityBehavior::class),
-                    'view'
-                ) || null === $webspace->getLocalization($locale)) {
+            if (null === $webspace->getLocalization($locale) || false === $this->securityChecker->hasPermission(
+                new SecurityCondition('sulu.webspaces.' . $webspace->getKey(), $locale, SecurityBehavior::class),
+                'view'
+            )) {
                 continue;
             }
             $paths[] = $this->sessionManager->getContentPath($webspace->getKey());
@@ -645,6 +645,13 @@ class PageController extends AbstractRestController implements ClassResourceInte
         UserInterface $user
     ) {
         $webspace = $this->webspaceManager->findWebspaceByKey($webspaceKey);
+        if (null === $webspace->getLocalization($locale) || false === $this->securityChecker->hasPermission(
+            new SecurityCondition('sulu.webspaces.' . $webspace->getKey(), $locale, SecurityBehavior::class),
+            'view'
+        )) {
+            return [];
+        }
+
         $paths = [$this->sessionManager->getContentPath($webspace->getKey())];
         $webspaces = [$webspace->getKey() => $webspace];
 
