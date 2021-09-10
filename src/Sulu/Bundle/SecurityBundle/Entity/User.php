@@ -30,7 +30,7 @@ use Symfony\Component\Security\Core\User\UserInterface as SymfonyUserInterface;
  *
  * @ExclusionPolicy("all")
  */
-class User extends ApiEntity implements UserInterface, Serializable, EquatableInterface
+class User extends ApiEntity implements UserInterface, EquatableInterface
 {
     /**
      * @var int
@@ -294,57 +294,6 @@ class User extends ApiEntity implements UserInterface, Serializable, EquatableIn
      */
     public function eraseCredentials()
     {
-    }
-
-    /**
-     * Serializes the user just with the id, as it is enough.
-     *
-     * @see http://php.net/manual/en/serializable.serialize.php
-     *
-     * @return string The string representation of the object or null
-     */
-    public function serialize()
-    {
-        return \serialize(
-            $this->__serialize()
-        );
-    }
-
-    /**
-     * @return mixed[]
-     */
-    public function __serialize(): array
-    {
-        return [
-            $this->id,
-            $this->password,
-            $this->salt,
-            $this->username,
-            $this->locked,
-            $this->enabled,
-        ];
-    }
-
-    /**
-     * Constructs the object.
-     *
-     * @see http://php.net/manual/en/serializable.unserialize.php
-     *
-     * @param string $serialized The string representation of the object
-     */
-    public function unserialize($serialized)
-    {
-        $this->__unserialize(\unserialize($serialized));
-    }
-
-    /**
-     * @param mixed[] $data
-     */
-    public function __unserialize(array $data): void
-    {
-        list(
-            $this->id, $this->password, $this->salt, $this->username, $this->locked, $this->enabled
-        ) = $data;
     }
 
     /**
