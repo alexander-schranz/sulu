@@ -254,19 +254,20 @@ class SuluNodeHelperTest extends TestCase
                 ->method('getPath')
                 ->will($this->returnValue('/foobar/foobar-' . $i));
         }
-
+        $iterator = new \ArrayIterator([
+            $node1, $node2, $node3,
+        ]);
         $node2->expects($this->any())
             ->method('getParent')
             ->will($this->returnValue($this->node));
         $this->node->expects($this->any())
             ->method('getNodes')
-            ->will($this->returnValue(new \ArrayIterator([
-                $node1, $node2, $node3,
-            ])));
+            ->will($this->returnValue($iterator));
 
         $res = $this->helper->getNextNode($node2);
         $this->assertSame($node3->getPath(), $res->getPath());
 
+        $iterator->rewind();
         $res = $this->helper->getPreviousNode($node2);
         $this->assertSame($node1->getPath(), $res->getPath());
     }
