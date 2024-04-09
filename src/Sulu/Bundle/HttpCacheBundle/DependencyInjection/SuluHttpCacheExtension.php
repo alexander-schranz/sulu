@@ -36,14 +36,6 @@ class SuluHttpCacheExtension extends Extension implements PrependExtensionInterf
             ],
         ];
 
-        if (!$container->hasExtension('sensio_framework_extra')) {
-            $fosHttpCacheConfig['tags'] = [
-                'annotations' => [
-                    'enabled' => false,
-                ],
-            ];
-        }
-
         if ($config['proxy_client']['symfony']['enabled']) {
             $symfonyProxyClient = $config['proxy_client']['symfony'];
             $fosHttpCacheConfig['proxy_client']['symfony']['http']['servers'] =

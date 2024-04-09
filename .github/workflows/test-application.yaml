@@ -212,6 +212,7 @@ jobs:
               if: ${{ matrix.dependency-versions == 'lowest' }}
               run: |
                   composer require symfony/swiftmailer-bundle --no-interaction --no-update
+                  composer require symfony-cmf/routing-bundle:"^2.4 || ^3.0 || ^4.0" --no-interaction --no-update # todo remove when SF7 released
 
             - name: Set composer stability
               if: ${{ matrix.composer-stability }}
