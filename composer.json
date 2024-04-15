@@ -30,6 +30,7 @@
         "ext-json": "*",
         "ext-simplexml": "*",
         "composer/package-versions-deprecated": "^1.8",
+        "composer-runtime-api": "^2.0",
         "contao/imagine-svg": "^1.0",
         "doctrine/annotations": "^1.2 || ^2.0",
         "doctrine/cache": "^1.0.1",
