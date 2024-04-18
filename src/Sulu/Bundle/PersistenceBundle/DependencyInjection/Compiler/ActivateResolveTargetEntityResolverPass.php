@@ -29,8 +29,8 @@ class ActivateResolveTargetEntityResolverPass implements CompilerPassInterface
 
         // we need to make sure that the service is added as event subscriber when doctrine bundle is not doing it
         // when the bundle dont get any config
-        if (!$resolveTargetEntityListener->hasTag('doctrine.event_subscriber')) {
-            $resolveTargetEntityListener->addTag('doctrine.event_subscriber');
+        if (!$resolveTargetEntityListener->hasTag('doctrine.event_listener')) {
+            $resolveTargetEntityListener->addTag('doctrine.event_listener');
         }
     }
 }
