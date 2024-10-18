@@ -150,7 +150,9 @@ class ImageMapPropertyResolverTest extends TestCase
     {
         yield 'empty' => [[]];
         yield 'int_id' => [['imageId' => 1]];
-        yield 'int_id_with_hotspots' => [['imageId' => 1, 'hotspots' => [['type' => 'text', 'hotspot' => ['type' => 'circle'], 'title' => 'Title 1'], ['type' => 'text', 'hotspot' => ['type' => 'circle'], 'title' => 'Title 2']]]];
+        yield 'int_id_with_hotspots' => [
+            ['imageId' => 1, 'hotspots' => [['type' => 'text', 'hotspot' => ['type' => 'circle'], 'title' => 'Title 1'], ['type' => 'text', 'hotspot' => ['type' => 'circle'], 'title' => 'Title 2']]],
+        ];
         yield 'string_id' => [['imageId' => '1']];
         yield 'string_id_with_hotspots' => [['imageId' => '1', 'hotspots' => [['type' => 'text', 'hotspot' => ['type' => 'circle'], 'title' => 'Title 1'], ['type' => 'text', 'hotspot' => ['type' => 'circle'], 'title' => 'Title 2']]]];
     }
