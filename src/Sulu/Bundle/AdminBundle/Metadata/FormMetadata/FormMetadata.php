@@ -70,11 +70,7 @@ class FormMetadata extends AbstractMetadata
     }
 
     /**
-<<<<<<< HEAD
-     * @deprecated since 3.0, use setName() instead
-=======
-     * @deprecated since 3.0, use setKey() instead
->>>>>>> e59ea74f26 (Replace form metadata name with key)
+     * @deprecated since 3.0, use getKey() instead
      */
     #[VirtualProperty]
     #[SerializedName('name')]
