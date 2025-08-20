@@ -231,6 +231,7 @@ ALTER TABLE se_roles DROP idSecurityTypes;
 And the container parameters has been removed:
 
 - `sulu_security.security_types.fixture`
+- `sulu_media.media.max_file_size` (replaced by `sulu_media.media.max_filesize`)
 
 ### Groups and User Groups have been removed
 
