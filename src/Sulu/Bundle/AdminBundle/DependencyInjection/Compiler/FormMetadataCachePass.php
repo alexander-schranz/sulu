@@ -41,8 +41,19 @@ class FormMetadataCachePass implements CompilerPassInterface
     private function addDirectory(string $directory, ContainerBuilder $container): void
     {
         // Resolving container parameters
-        $directory = \preg_replace_callback('#%([^%]+)%#', fn ($match) => $container->getParameter($match[1]), $directory);
-        if (\file_exists($directory)) {
+        $directory = $container->resolveEnvPlaceholders(
+            \preg_replace_callback(
+                '#%([^%]+)%#',
+                static function(array $match) use ($container): string {
+                    /** @var string $param */
+                    $param = $container->getParameter($match[1]);
+
+                    return $param;
+                },
+                $directory
+            )
+        );
+        if (\is_string($directory) && \file_exists($directory) && \is_dir($directory)) {
             $container->addResource(new DirectoryResource($directory, '/\.xml$/'));
         }
     }
