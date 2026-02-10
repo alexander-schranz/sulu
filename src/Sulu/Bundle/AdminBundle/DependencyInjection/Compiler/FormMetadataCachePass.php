@@ -27,10 +27,10 @@ class FormMetadataCachePass implements CompilerPassInterface
         $kernelProjectDir = $container->getParameter('kernel.project_dir');
 
         foreach ($container->getParameter('sulu_admin.forms.directories') as $directory) {
-            $this->addDirectory($directory, $container, $kernelProjectDir);
+            $this->addDirectory($directory, $container);
         }
         foreach ($container->getParameter('sulu_admin.lists.directories') as $directory) {
-            $this->addDirectory($directory, $container, $kernelProjectDir);
+            $this->addDirectory($directory, $container);
         }
 
         $this->addDirectory($container->getParameter('sulu_core.webspace.config_dir'), $container, $kernelProjectDir);
@@ -38,12 +38,12 @@ class FormMetadataCachePass implements CompilerPassInterface
         // Adding templates to the cache
         foreach ($container->getParameter('sulu_admin.templates.configuration') as $configuration) {
             foreach ($configuration['directories'] as $directory) {
-                $this->addDirectory($directory, $container, $kernelProjectDir);
+                $this->addDirectory($directory, $container);
             }
         }
     }
 
-    private function addDirectory(string $directory, ContainerBuilder $container, string $kernelProjectDir): void
+    private function addDirectory(string $directory, ContainerBuilder $container): void
     {
         // Resolving container parameters
         $directory = $container->resolveEnvPlaceholders(
@@ -64,11 +64,6 @@ class FormMetadataCachePass implements CompilerPassInterface
         }
 
         if (!\file_exists($directory) || !\is_dir($directory)) {
-            return;
-        }
-
-        // no need to watch vendor directory files
-        if (\str_starts_with($directory, $kernelProjectDir . DIRECTORY_SEPARATOR . 'vendor')) {
             return;
         }
 
