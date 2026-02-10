@@ -17,28 +17,33 @@ use Symfony\Component\Config\Resource\DirectoryResource;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
+/**
+ * @internal no backwards compatibility promise, only for internal use.
+ */
 class FormMetadataCachePass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
+        $kernelProjectDir = $container->getParameter('kernel.project_dir');
+
         foreach ($container->getParameter('sulu_admin.forms.directories') as $directory) {
-            $this->addDirectory($directory, $container);
+            $this->addDirectory($directory, $container, $kernelProjectDir);
         }
         foreach ($container->getParameter('sulu_admin.lists.directories') as $directory) {
-            $this->addDirectory($directory, $container);
+            $this->addDirectory($directory, $container, $kernelProjectDir);
         }
 
-        $this->addDirectory($container->getParameter('sulu_core.webspace.config_dir'), $container);
+        $this->addDirectory($container->getParameter('sulu_core.webspace.config_dir'), $container, $kernelProjectDir);
 
         // Adding templates to the cache
         foreach ($container->getParameter('sulu_admin.templates.configuration') as $configuration) {
             foreach ($configuration['directories'] as $directory) {
-                $this->addDirectory($directory, $container);
+                $this->addDirectory($directory, $container, $kernelProjectDir);
             }
         }
     }
 
-    private function addDirectory(string $directory, ContainerBuilder $container): void
+    private function addDirectory(string $directory, ContainerBuilder $container, string $kernelProjectDir): void
     {
         // Resolving container parameters
         $directory = $container->resolveEnvPlaceholders(
@@ -53,8 +58,20 @@ class FormMetadataCachePass implements CompilerPassInterface
                 $directory
             )
         );
-        if (\is_string($directory) && \file_exists($directory) && \is_dir($directory)) {
-            $container->addResource(new DirectoryResource($directory, '/\.xml$/'));
+
+        if (!\is_string($directory)) {
+            return;
         }
+
+        if (!\file_exists($directory) || !\is_dir($directory)) {
+            return;
+        }
+
+        // no need to watch vendor directory files
+        if (\str_starts_with($directory, $kernelProjectDir . DIRECTORY_SEPARATOR . 'vendor')) {
+            return;
+        }
+
+        $container->addResource(new DirectoryResource($directory, '/\.xml$/'));
     }
 }
